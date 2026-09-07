@@ -1,0 +1,2 @@
+/* Deliberately system fonts only: no network requests and crisp native Windows CJK text. */
+input,button,select,a{touch-action:manipulation}

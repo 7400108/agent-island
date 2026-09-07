@@ -1,0 +1,50 @@
+{
+  "name": "agent-island",
+  "version": "1.2.0",
+  "private": true,
+  "description": "A quiet home for your agents. Windows 灵动岛通知中心",
+  "author": "Agent Island",
+  "type": "module",
+  "main": "dist-electron/electron/main.js",
+  "scripts": {
+    "postinstall": "install-electron",
+    "prebuild": "node scripts/generate-icons.mjs",
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.electron.json && vite build",
+    "start": "npm run build && electron .",
+    "test": "tsx --test tests/*.test.ts",
+    "test:desktop": "node scripts/desktop-smoke.mjs",
+    "pack": "npm run build && electron-builder --win --x64",
+    "pack:dir": "npm run build && electron-builder --dir --win --x64"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "electron": "44.2.0",
+    "electron-builder": "26.15.3",
+    "playwright": "1.63.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "vite": "8.2.2"
+  },
+  "build": {
+    "appId": "com.agentisland.desktop",
+    "productName": "Agent Island",
+    "asar": true,
+    "electronDist": "node_modules/electron/dist",
+    "directories": { "output": "release" },
+    "files": ["dist/**/*", "dist-electron/**/*", "resources/**/*", "package.json"],
+    "win": { "target": ["nsis", "portable"], "icon": "resources/icon.ico", "signExecutable": false },
+    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "shortcutName": "Agent Island 灵动岛", "artifactName": "Agent-Island-${version}-${arch}-Setup.${ext}" },
+    "portable": { "artifactName": "Agent-Island-${version}-${arch}-Portable.${ext}" }
+  }
+}

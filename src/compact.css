@@ -1,0 +1,123 @@
+/* OrcaTerm-inspired: 120 × 40 DIP at rest (150 × 50 px on a 125% desktop).
+   A quiet black surface; content alone determines the expanded height. */
+.island.compact {
+  width: 120px;
+  height: 40px;
+  border: 0;
+  border-radius: 16px;
+  background: #000;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  transition: width .26s cubic-bezier(.2,.85,.25,1), border-radius .26s;
+}
+.island.compact.expanded {
+  width: min(480px, 100%);
+  height: auto;
+  min-height: 64px;
+  max-height: var(--panel-max-height);
+  border-radius: 16px;
+  background: #0b0c0e;
+  box-shadow: 0 4px 10px #00000014;
+}
+.compact .capsule {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+  gap: 9px;
+}
+.quiet-bars { display: inline-flex; gap: 2px; align-items: center; width: 12px; height: 16px; flex-shrink: 0; }
+.quiet-bars i { width: 2px; height: 5px; border-radius: 1px; background: #4e4e4e; }
+.capsule-end { display: flex; align-items: center; justify-content: flex-end; gap: 4px; flex: 1; }
+.compact-count { color: #dedede; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 4px; background: #282828; border-radius: 10px; }
+.compact .capsule .agent-icon { width: 13px; height: 16px; color: #949494; }
+.compact .capsule .agent-icon svg { width: 13px; height: 13px; }
+.running-count { color: #888; font-size: 9px; }
+.compact .wave { color: #d2d2d2; transform: none; height: 28px; gap: 2px; margin: 0; }
+.compact .wave i { display: block; width: 2px; height: var(--bar); background: linear-gradient(#f2f2f2, #aaa); animation-name: compact-wave; animation-direction: normal; }
+@keyframes compact-wave {
+  0%, 100% { transform: scaleY(.18); opacity: .55; }
+  28% { transform: scaleY(.85); opacity: .95; }
+  52% { transform: scaleY(.32); opacity: .65; }
+  76% { transform: scaleY(1); opacity: 1; }
+}
+.compact .expanded-content { height: auto; min-height: 0; flex: 0 1 auto; animation: content-in .2s both; }
+.compact-header { height: 40px; min-height: 40px; padding: 0 13px 0 16px; background: #000; border: 0; }
+.compact-header .header-title { gap: 10px; }
+.compact-header .header-title h1 { font-size: 11px; font-weight: 500; letter-spacing: 0; margin: 0; color: #c8c8c8; }
+.compact-status { font-size: 10px; color: #717171; }
+.compact-header .header-actions { gap: 8px; }
+.compact-header .header-actions > .icon-button, .compact-header .menu-anchor > .icon-button { width: 24px; height: 24px; background: #222; color: #b6b6b6; border-radius: 50%; }
+.compact-header .icon-button:hover { background: #333; color: #f4f4f4; }
+.sr-only { position: absolute!important; width: 1px!important; height: 1px!important; padding: 0!important; overflow: hidden!important; clip-path: inset(50%); white-space: nowrap; }
+.compact .inbox-toolbar { margin: 0; padding: 5px 14px 2px; }
+.compact .tabs { background: none; border: 0; padding: 0; gap: 2px; }
+.compact .tabs button { padding: 3px 7px; font-size: 10px; }
+.compact .tabs button.active { background: #202124; box-shadow: none; }
+.compact .notification-list { padding: 0 12px 0; flex: 0 1 auto; max-height: calc(var(--panel-max-height) - 40px); }
+.compact .empty-state { min-height: 24px; height: 24px; padding: 0 4px; flex-direction: row; justify-content: space-between; color: #535459; font-size: 9px; }
+.compact .empty-state button { display: inline-flex; align-items: center; gap: 2px; font-size: 9px; color: #71747b; padding: 0; }
+.compact .cards { gap: 6px; padding: 4px 0 11px; }
+.compact .notification-card { border: 1px solid #202124; background: #111214; border-radius: 11px; }
+.compact .notification-card:hover { background: #191a1d; }
+.compact .notification-open { padding: 9px 8px; }
+.compact .card-meta { margin-bottom: 3px; gap: 6px; }
+.compact .card-meta .agent-icon { width: 16px; height: 16px; background: none; }
+.compact .card-meta .agent-icon svg { width: 13px; height: 13px; }
+.compact .card-meta strong { font-size: 10px; color: #aaaeb5; font-weight: 500; }
+.compact .card-meta time { font-size: 9px; color: #55585f; }
+.compact .notification-card h2 { margin: 0 26px 3px 22px; font-size: 11px; line-height: 1.6; -webkit-line-clamp: 1; color: #aaaeb5; }
+.compact .card-bottom { margin-left: 22px; font-size: 8px; color: #51565c; }
+.compact .card-bottom > span:last-child { color: #686e75; }
+.compact .card-delete { top: 27px; right: 5px; width: 21px; height: 21px; }
+.compact .live-section { margin-bottom: 4px; }
+.compact .live-label { display: none; }
+.compact .live-task { border: 0; background: transparent; border-radius: 0; margin: 0; padding: 9px 8px; }
+.compact .live-task strong { font-size: 10px; }
+.compact .live-task p { font-size: 9px; }
+.compact .live-task .agent-icon { background: none; width: 19px; height: 19px; }
+.compact .live-task .wave { transform: scale(.8); opacity: .7; }
+.compact .attention-task { margin: 5px 0; padding: 8px; }
+.compact .settings { height: 420px; max-height: calc(var(--panel-max-height) - 40px); padding: 13px 16px 10px; flex: 0 1 auto; }
+.compact .section-caption { font-size: 9px; }
+.compact .settings-group { background: #111215; border-color: #242529; border-radius: 9px; margin-bottom: 12px; }
+.compact .agent-setting { padding: 10px 11px 7px; }
+.compact .agent-setting .agent-icon { width: 28px; height: 28px; background: none; }
+.compact .setting-text strong { font-size: 11px; }
+.compact .setting-row { min-height: 37px; padding: 9px 11px; font-size: 10px; }
+.compact .path-button { padding-left: 37px; }
+.compact .setting-note { margin-bottom: 12px; font-size: 9px; }
+.compact .detail-meta { margin: 9px 20px 8px; font-size: 9px; }
+.compact .detail-meta .agent-icon { width: 16px; height: 16px; background: none; }
+.compact .answer { margin: 0 20px; padding-bottom: 6px; height: auto; max-height: calc(var(--panel-max-height) - 117px); flex: 0 1 auto; font-size: 12px; }
+.compact .answer h2 { font-size: 14px; }
+.compact .detail-footer { margin-top: 7px; padding: 7px 13px 9px; }
+.compact .detail-footer button { font-size: 9px; }
+.compact .error-banner { margin: 6px 12px; font-size: 9px; padding: 6px 8px; }
+.compact .popup-menu { top: 28px; border-radius: 8px; width: 157px; padding: 4px; }
+.compact .popup-menu button { padding: 8px; font-size: 10px; }
+.island.compact.menu-open { min-height: 124px; }
+.island.compact.confirming { min-height: 280px; }
+.compact .confirm-scrim { inset: 40px 0 0; padding: 16px; }
+.compact .confirm-dialog { padding: 16px; border-radius: 10px; }
+.compact .confirm-icon { display: none; }
+.compact .confirm-dialog h2 { font-size: 14px; }
+.compact .confirm-dialog p { font-size: 10px; margin-bottom: 16px; }
+.compact .confirm-dialog button { font-size: 10px; padding: 8px; }
+.island.compact.arrival { animation: compact-arrival 1s ease; }
+.loading-island { width: 120px; height: 40px; background: #000; border-radius: 16px; }
+.preview .island.compact.expanded { height: auto; }
+@keyframes compact-arrival { 0%,100% { background: #000; } 35% { background: #161719; } }
+
+/* Answers are inline, with one shared scroll surface and no truncated summaries. */
+.compact .notification-card { padding: 9px 10px; }
+.compact .card-project { color: #62666e; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; }
+.compact .card-meta .icon-button { width: 22px; height: 22px; }
+.compact .inline-answer { margin: 0; padding: 4px 0 0; max-height: none; overflow: visible; }
+.compact .inline-answer h1, .compact .inline-answer h2, .compact .inline-answer h3 { display: block; -webkit-line-clamp: unset; overflow: visible; margin: 12px 0 6px; color: #d5d7dd; font-weight: 550; }
+.compact .inline-answer h1 { font-size: 16px; }
+.compact .inline-answer h2 { font-size: 14px; }
+.compact .inline-answer h3 { font-size: 13px; }
+.compact .inline-answer > :first-child { margin-top: 0; }
+.compact .inline-answer > :last-child { margin-bottom: 0; }
+.compact .inline-answer p { margin: 6px 0; }
