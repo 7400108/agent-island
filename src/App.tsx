@@ -152,7 +152,7 @@ export function App() {
           <div className="section-caption">通知与启动</div>
           <div className="settings-group"><label className="setting-row"><span><Volume2 size={16}/>完成提示音</span><input className="toggle" type="checkbox" checked={state.settings.sound} disabled={saving} onChange={e => void update({ sound: e.target.checked })}/></label><label className="setting-row"><span><Power size={16}/>开机启动</span><input className="toggle" type="checkbox" checked={state.settings.autoStart} disabled={saving} onChange={e => void update({ autoStart: e.target.checked })}/></label></div>
           <button className="test-button" onClick={() => { void perform(() => api.demo()); collapse(); setToast('测试任务已开始'); }}><Play size={14}/>发送测试通知<span>体验运行与完成效果</span></button>
-          <div className="settings-footer"><span>AGENT ISLAND <small>1.2.0</small></span><button onClick={() => api.quit()}>退出程序</button></div>
+          <div className="settings-footer"><span>AGENT ISLAND <small>1.3.0</small></span><button onClick={() => api.quit()}>退出程序</button></div>
         </div> : <>
           <div className="notification-list scroll-area">
             {!!running.length && <div className="live-section"><div className="live-label"><span className="live-dot"/>正在进行 <span>{running.length}</span></div>{running.map(task => <div className="live-task" key={task.id}><AgentIcon source={task.source} small/><div><strong>{labels[task.source]}{task.demo && <small>测试</small>}</strong><p>{projectName(task.project)}</p></div><Wave source={task.source}/></div>)}</div>}

@@ -28,6 +28,20 @@ let runningTick = false;
 let updateQueue: Promise<unknown> = Promise.resolve();
 let demoBusy = false;
 
+function hasActivity() {
+  return store.data.notifications.length > 0 || store.data.tasks.some(task => task.status === 'running');
+}
+function syncVisibility() {
+  if (!win || win.isDestroyed()) return;
+  // Explicit tray/settings access is allowed while idle. Automatic activity never steals focus.
+  if (expanded || hasActivity()) {
+    if (!win.isVisible()) win.showInactive();
+  } else if (win.isVisible()) {
+    win.setIgnoreMouseEvents(true, { forward: true });
+    win.hide();
+  }
+}
+
 function snapshot(): Snapshot {
   const display = screen.getAllDisplays().find(d => String(d.id) === store.data.settings.displayId) || screen.getPrimaryDisplay();
   return { settings: store.data.settings, notifications: store.data.notifications,
@@ -40,6 +54,7 @@ function broadcast() {
   if (!win || win.isDestroyed()) return;
   const next = JSON.stringify(snapshot());
   if (next !== lastSnapshot) { win.webContents.send('state', JSON.parse(next)); lastSnapshot = next; }
+  syncVisibility();
 }
 function position() {
   if (!win || win.isDestroyed()) return;
@@ -50,10 +65,13 @@ function position() {
   win.setBounds({ x: Math.round(area.x + (area.width - width) / 2), y: area.y + Math.min(store.data.settings.topOffset, Math.floor(area.height / 4)), width, height });
 }
 function setExpanded(value: boolean, requestedHeight?: number, focus = false) {
+  // Ignore a late ResizeObserver message from a panel that was just hidden.
+  if (value && requestedHeight !== undefined && !expanded) return;
   const opening = value && !expanded;
   if (Number.isFinite(requestedHeight)) panelHeight = Math.max(64, Math.min(480, Math.ceil(requestedHeight!)));
   expanded = value;
   position();
+  syncVisibility();
   // Content resizing must not steal focus from the user's other windows.
   if (opening) win.setIgnoreMouseEvents(false);
   if (value && focus) win.focus();
@@ -113,7 +131,11 @@ function registerIPC() {
     });
     return updateQueue;
   });
-  handle('clear-notifications', () => { store.clear(); store.save(); broadcast(); });
+  handle('clear-notifications', () => {
+    store.clear(); store.save();
+    if (!hasActivity()) { setExpanded(false); win.webContents.send('collapse'); }
+    broadcast();
+  });
   handle('dismiss-task', (id: string) => { store.data.tasks = store.data.tasks.filter(t => t.id !== id || t.status === 'running'); store.save(); broadcast(); });
   handle('directory', async (source: Source) => {
     if (!['codex', 'claude'].includes(source)) return null;
@@ -167,7 +189,7 @@ if (locked) app.whenReady().then(async () => {
   screen.on('display-removed', displayChanged);
   screen.on('display-metrics-changed', displayChanged);
   await win.loadFile(path.join(root, 'dist', 'index.html'));
-  position(); win.showInactive();
+  position(); syncVisibility();
   await tick();
   timer = setInterval(() => void tick(), 2000);
 });

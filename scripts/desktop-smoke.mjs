@@ -20,6 +20,15 @@ const launchOptions={args:process.env.AGENT_ISLAND_EXECUTABLE?[]:[root],executab
 let instance;
 const faults=[];
 const results=[];
+// Await asynchronous IPC predicates explicitly; hidden windows do not produce animation frames.
+async function waitForCondition(page, fn, arg, options={}) {
+  const deadline=Date.now()+(options.timeout ?? 15000);
+  while(Date.now()<deadline) {
+    if(await page.evaluate(fn,arg)) return;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`Condition timed out: ${fn.toString()}`);
+}
 async function runBridge(event) {
   await new Promise((resolve,reject)=>{
     const child=spawn('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(data,'agent-island-bridge.ps1'),'-Inbox',path.join(data,'events')],{windowsHide:true,stdio:['pipe','pipe','pipe']});
@@ -31,8 +40,11 @@ async function runBridge(event) {
 try {
   instance=await electron.launch(launchOptions);
   const page=await instance.firstWindow();page.on('pageerror',e=>faults.push(e.message));
+  page.setDefaultTimeout(15000);
+  page.waitForFunction=(...args)=>waitForCondition(page,...args);
   await page.waitForFunction(()=>Boolean(window.island));
-  await page.getByRole('button',{name:/展开灵动岛/}).click();
+  assert.equal(await instance.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isVisible()),false);
+  await instance.evaluate(({app})=>app.emit('second-instance'));
   await page.getByRole('heading',{name:'通知中心',exact:true}).waitFor();
   await page.screenshot({path:path.join(output,'01-empty.png')});
   await page.getByRole('button',{name:'打开设置',exact:true}).click();
@@ -113,7 +125,7 @@ try {
   results.push('12 animated low/high bars; automatic popup ~2 seconds without focus theft; inline Markdown/code; count unchanged after viewing; copy and direct clear-all; no per-item delete or confirmation.');
 
   // Interacting with an automatic popup keeps it open for reading.
-  await page.getByRole('button',{name:'收起',exact:true}).click();
+  assert.equal(await instance.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('file:')).isVisible()),false);
   await page.waitForTimeout(450);
   fs.appendFileSync(file,line('event_msg',{type:'task_started',turn_id:'takeover'})+line('event_msg',{type:'task_complete',turn_id:'takeover',last_agent_message:'手动阅读时不要自动收起'}));
   await page.waitForFunction(()=>document.querySelector('.island')?.dataset.mode==='peek');
@@ -130,13 +142,25 @@ try {
   await page.getByRole('button',{name:'清空全部通知',exact:true}).click();
   await page.waitForFunction(async()=> (await window.island.snapshot()).notifications.length===0);
   results.push('Clicking an automatic popup cancels auto-close; a new answer does not interrupt manual settings.');
+  fs.appendFileSync(file,line('event_msg',{type:'task_started',turn_id:'running-clear'}));
+  await page.waitForFunction(()=>document.querySelectorAll('.capsule .wave i').length===12);
+  await page.evaluate(()=>window.island.clearNotifications());
+  assert.equal(await instance.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('file:')).isVisible()),true);
+  fs.appendFileSync(file,line('event_msg',{type:'turn_aborted',turn_id:'running-clear'}));
+  await page.waitForFunction(async()=>!(await window.island.snapshot()).tasks.some(t=>t.status==='running'));
+  await page.waitForTimeout(200);
+  assert.equal(await instance.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('file:')).isVisible()),false);
+  results.push('Idle startup/restart hidden; task start reveals island; clear during running stays visible; interruption without notifications hides it.');
   await instance.close();instance=undefined;
   instance=await electron.launch(launchOptions);
   const restarted=await instance.firstWindow();
+  restarted.setDefaultTimeout(15000);
+  restarted.waitForFunction=(...args)=>waitForCondition(restarted,...args);
   await restarted.waitForFunction(()=>Boolean(window.island));
   await new Promise(resolve=>setTimeout(resolve,2500));
   assert.equal(await restarted.evaluate(async()=> (await window.island.snapshot()).notifications.length),0);
-  await restarted.getByRole('button',{name:/展开灵动岛/}).click();
+  assert.equal(await instance.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isVisible()),false);
+  await instance.evaluate(({app})=>app.emit('second-instance'));
   await restarted.getByRole('button',{name:'打开设置',exact:true}).click();
   await restarted.getByRole('checkbox',{name:'开启 Claude Code',exact:true}).click();
   await restarted.waitForFunction(async()=> !(await window.island.snapshot()).settings.claude);
